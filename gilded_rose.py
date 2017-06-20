@@ -4,36 +4,40 @@ class GildedRose(object):
 
     def __init__(self, items):
         self.items = items
+        self.quality_change_per_day = {
+            "Aged Brie": 1,
+            "Backstage passes to a TAFKAL80ETC concert": {
+                'ten_or_less': 2,
+                'five_or_less': 3,
+            },
+            "Conjured Mana Cake": -2,
+            "Sulfuras, Hand of Ragnaros": 0,
+        }
+        self.sell_in_change_per_day = {
+            "Sulfuras, Hand of Ragnaros": 0,
+        }
 
     def update_quality(self):
         for item in self.items:
-            if item.name != "Aged Brie" and item.name != "Backstage passes to a TAFKAL80ETC concert":
-                if item.quality > 0:
-                    if item.name != "Sulfuras, Hand of Ragnaros":
-                        item.quality = item.quality - 1
-            else:
-                if item.quality < 50:
-                    item.quality = item.quality + 1
-                    if item.name == "Backstage passes to a TAFKAL80ETC concert":
-                        if item.sell_in < 11:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-                        if item.sell_in < 6:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-            if item.name != "Sulfuras, Hand of Ragnaros":
-                item.sell_in = item.sell_in - 1
+            item.sell_in += self.sell_in_change_per_day.get(item.name, -1)
+            self.incrementally_change_quality_of_item(item)
             if item.sell_in < 0:
-                if item.name != "Aged Brie":
-                    if item.name != "Backstage passes to a TAFKAL80ETC concert":
-                        if item.quality > 0:
-                            if item.name != "Sulfuras, Hand of Ragnaros":
-                                item.quality = item.quality - 1
-                    else:
-                        item.quality = item.quality - item.quality
-                else:
-                    if item.quality < 50:
-                        item.quality = item.quality + 1
+                self.incrementally_change_quality_of_item(item)
+
+    def incrementally_change_quality_of_item(self, item):
+        if item.name == "Backstage passes to a TAFKAL80ETC concert":
+            if item.sell_in < 0:
+                item.quality = 0
+            elif item.sell_in <= 5:
+                item.quality += self.quality_change_per_day[item.name]['five_or_less']
+            elif item.sell_in <= 10:
+                item.quality += self.quality_change_per_day[item.name]['ten_or_less']
+        else:
+            item.quality += self.quality_change_per_day.get(item.name, -1)
+
+        item.quality = max(item.quality, 0)
+        if item.name != "Sulfuras, Hand of Ragnaros":
+            item.quality = min(item.quality, 50)    
 
 
 class Item:

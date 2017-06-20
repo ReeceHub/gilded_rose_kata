@@ -22,7 +22,7 @@ def main():
         days = int(sys.argv[1]) + 1
 
     for day in range(days):
-        print('-------- day %s --------'.format(day))
+        print('-------- day {} --------'.format(day))
         print('name, sellIn, quality')
         for item in items:
             print(item)
